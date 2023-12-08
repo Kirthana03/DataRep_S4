@@ -376,9 +376,9 @@
 
         });
 
-        mapIndia.addSource('IndiaStatesCC', {
+        mapIndia.addSource('new', {
         type: 'geojson',
-        data: 'IndiaStatesCC.geojson'
+        data: 'new.geojson'
 
 
     });
@@ -387,7 +387,7 @@
         mapIndia.addLayer({
             id: 'choropleth-layer',
             type: 'fill',
-            source: 'IndiaStatesCC',
+            source: 'new',
             paint: {
                 'fill-color': [
                     'interpolate',
