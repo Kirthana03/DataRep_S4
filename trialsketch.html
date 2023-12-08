@@ -1,0 +1,155 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapbox Coal Viz</title>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.dom.min.js"></script>
+
+
+</head>
+
+<style>
+    body { margin: 0; padding: 0; }
+    #mapA { position: absolute; top: 0; bottom: 0; width: 100%; }
+
+</style>
+<style>
+    .mapboxgl-popup {
+    max-width: 400px;
+    font: 12px/20px 'Neue Montreal', sans-serif;
+    }
+</style>
+
+<div id="mapA"></div>
+
+    <script>
+
+    var radius;
+       
+        mapboxgl.accessToken = "pk.eyJ1Ijoia2lydGhhbmEtMDMiLCJhIjoiY2xteW94dHR6MTY4YTJ1bTJ2bXZocWN4OCJ9.4YWvoRCdTVkZs7MUlKFNHg";
+        var mapIndia = new mapboxgl.Map({
+        container: "mapA",
+        style: "mapbox://styles/kirthana-03/cln318eqc038h01qxdm9j7nmg",
+        center: [78, 24],
+        zoom: 2
+    });
+
+    var uArray = JSON.parse(localStorage.getItem('sArray'));
+    console.log(uArray); 
+
+    
+    var geojson = {
+            type: 'FeatureCollection',
+            features: uArray.map(function(item) {
+                return {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [item.CY, item.CX]
+                    },
+                    properties: {
+                        title: item.state,
+                        Coal: item.Coal,
+                        Total: item.Total,
+                    }
+                };
+            })
+        };
+
+    console.log(geojson); 
+      
+        mapIndia.on('load', function () {
+
+
+        const popup = new mapboxgl.Popup({
+
+            closeButton: false,
+            closeOnClick: false
+            });
+
+        mapIndia.on('click', 'coal-layer', function (e) {
+            var coordinates = e.features[0].geometry.coordinates.slice();
+            var description = e.features[0].properties.Coal + " MW";
+            popup.remove();
+            new mapboxgl.Popup()
+                .setLngLat(coordinates)
+                .setHTML(description)
+                .addTo(mapIndia);
+
+
+        });
+
+        mapIndia.addSource('IndiaStatesCC', {
+        type: 'geojson',
+        data: 'IndiaStatesCC.geojson'
+
+    });
+        mapIndia.addLayer({
+            id: 'choropleth-layer',
+            type: 'fill',
+            source: 'IndiaStatesCC',
+            paint: {
+                'fill-color': [
+                    'interpolate',
+                    ['linear'],
+                    ['get', 'Total'],
+                    30, '#FFFFFF', 
+                    50000, '#000000'  
+                ],
+                'fill-opacity': 0.4
+            },
+        });
+        
+
+        mapIndia.on('mouseenter','choropleth-layer',function(e) {
+
+                popup
+                .setLngLat(e.lngLat)
+                .setHTML(e.features[0].properties.st_nm)
+                .addTo(mapIndia);
+        });
+
+        mapIndia.on('mouseleave','choropleth-layer',function(e) {
+
+            popup.remove();
+
+            })
+
+        mapIndia.addSource('coal-data', {
+            type: 'geojson',
+            data: geojson,
+            // cluster: true,
+            // clusterMaxZoom: 9,
+            // clusterRadius: 50
+        });
+
+        mapIndia.addLayer({
+            id: 'coal-layer',
+            type: 'circle',
+            source: 'coal-data',
+            paint: {
+                'circle-radius': [
+                    'interpolate',
+                    ['linear'],
+                    ['get', 'Coal'],
+                    0.000001, 
+                    5, 
+                    25000, 
+                    20
+
+                ],
+                'circle-color': '#ff0000',
+            },
+        });
+
+    });
+
+        </script>
+
+        </body>
+        </html>

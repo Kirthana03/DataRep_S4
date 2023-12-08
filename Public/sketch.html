@@ -1,0 +1,492 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapbox Coal Viz</title>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.14.1/mapbox-gl.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.7.3/addons/p5.dom.min.js"></script>
+<!-- <div id="Land01"></div> -->
+<style>
+    body { margin: 0; padding: 0; }
+    #mapA { position: fixed; top: 0; bottom: 0; width: 100%; }
+</style>
+</head>
+
+<body>
+    <style>
+
+        .map-overlay {
+            font: 12px/20px 'Neue Montreal', sans-serif;
+            font-weight: 600;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            z-index: 1;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 3px;
+            padding: 3px;
+            display: flex;
+            flex-direction: column;
+
+        }
+        #legend {
+
+            padding: 6px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            line-height: 18px;
+            height: 120px;
+            margin-bottom: 40px;
+            width: 90px;
+            }
+            .legend-key {
+            font: 12px/20px 'Neue Montreal', sans-serif;
+                font-weight: 600;
+                display: inline-block;
+                border-radius: 20%;
+                border-color: black;
+                border-width: 1px;
+                width: 10px;
+                height: 10px;
+                margin-right: 5px;
+            }
+
+        .filter-options-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 3px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+
+
+        .filter-group {
+        font: 12px/20px 'Neue Montreal', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 5px 0;
+        }
+
+        </style>
+
+<style>
+    #mapA { position: fixed; width: 70%; }
+
+    #features {
+        width: 30%;
+        margin-left: 70%;
+        font: 12px/20px 'Neue Montreal', sans-serif;
+        overflow-y: scroll;
+        background-color: #fafafa;
+    }
+
+    section {
+        padding: 40px 50px;
+        line-height: 25px;
+        border-bottom: 1px solid #ddd;
+        opacity: 0.25;
+        font-size: 13px;
+    }
+    section.active {
+        opacity: 1;
+    }
+    section:last-child {
+        border-bottom: none;
+        margin-bottom: 600px;
+    }
+
+</style>
+
+    <div id="mapA"></div>
+    <div class='map-overlay' id='legend'>
+        <p>Sum Installed Capacity<p>
+    </div>
+
+
+    <div id="features">
+
+        <div class="filter-options-container">
+
+            <div class="filter-group">
+
+                <input type="checkbox" id="show-coal" unchecked>
+                <label for="show-coal">Coal</label>
+            </div>
+            <div class="filter-group">
+                <input type="checkbox" id="show-hydro" unchecked>
+                <label for="show-hydro">Hydro</label>
+            </div>
+            <div class="filter-group">
+                <input type="checkbox" id="show-renewable" unchecked>
+                <label for="show-renewable">Renewable</label>
+            </div>
+        </div>
+    <section id="Power Sector in India" class="active">
+    <h3>Power Sector in India</h3>
+    <p>
+        The power sector in India plays a pivotal role in the country’s economic growth and development. With a rapidly growing population and a surging economy, the demand for electricity has surged in recent years increasing the complexities of electricity management in India.
+    </p>
+    </section>
+    <section id="Installed Capacity">
+    <h3>Installed Capacity</h3>
+    <p>
+        It refers to the overall potential of a certain region's ability to generate electricity. It is an aggregate measure of producing electricity through different sources. Installed Capacity, usually measured in Megawatts.
+    </p>
+    </section>
+    <section id="Highest Installed Capacity">
+    <h3>Highest Installed Capacity</h3>
+    <p>
+        As of August 2023, Gujarat holds the position for highest installed capacity. 
+    </p>
+    </section>
+    <section id="Largest source of electricity">
+    <h3>Largest source of electricity</h3>
+    <p>
+        Coal is one of the most carbon-intensive sources of fuel and is also the largest source to produce electricity via thermal power plants in India and worldwide. 
+    </p>
+    </section>
+    <section id="in-complete Picture">
+        <h3>in-complete Picture</h3>
+        <p>
+        While investigating  sources of electricity and their modes of reaching us, several factors including
+        </p>
+        </section>
+        <section id="Explore">
+            <h3>Explore other states</h3>
+            <p>
+              Move around to observe capacities of different states and different sources. 
+              Installed capacity, a cornerstone of energy planning, signifies a nation's potential to generate electricity under optimal conditions. It aids in informed investment decisions, grid stability, and the transition to clean energy. Robust capacity fosters economic growth by attracting industries. However, it must be critically assessed. High capacity doesn't guarantee actual output; factors like maintenance and weather impact it. Overinvestment in capacity can lead to inefficiency and financial strain if demand doesn't align. Striking a balance between expansion and practical utilization is key to harnessing the true significance of installed capacity.
+            </p>
+            </section>
+
+     </div>
+
+<style>
+    .mapboxgl-popup {
+    max-width: 400px;
+    font: 12px/20px 'Neue Montreal', sans-serif;
+    }
+</style>
+
+
+    <script>
+       
+        mapboxgl.accessToken = "pk.eyJ1Ijoia2lydGhhbmEtMDMiLCJhIjoiY2xteW94dHR6MTY4YTJ1bTJ2bXZocWN4OCJ9.4YWvoRCdTVkZs7MUlKFNHg";
+        var mapIndia = new mapboxgl.Map({
+        container: "mapA",
+        style: "mapbox://styles/kirthana-03/cln5odcb403bg01pfe9c93t4f/draft",
+        center: [105, 24],
+        minZoom: 1,
+        zoom: 1,
+
+    });
+
+    const chapters = {
+        'Power Sector in India': {
+        // bearing: 27,
+        center: [79,30],
+        zoom: 1,
+        // pitch: 20
+        },
+        'Installed Capacity': {
+        duration: 6000,
+        center: [77.13587407992564,28.628182902038322],
+        // bearing: 150,
+        zoom: 2.2,
+        // pitch: 0
+        },
+        'Highest Installed Capacity': {
+        // bearing: 90,
+        center: [71.19013157292055,22.945130985693975],
+        zoom: 6,
+        speed: 0.6,
+        // pitch: 40
+        },
+        'Largest source of electricity': {
+        // bearing: 90,
+        center: [78,22],
+        zoom: 3.7, 
+        },
+        'in-complete Picture': {
+        center: [78,22], 
+        zoom: 4, 
+        }, 
+        'Explore': {
+        center: [80,22], 
+        zoom: 5,
+        }
+
+    };
+
+    let activeChapterName = 'Power Sector in India';
+        function setActiveChapter(chapterName) {
+            if (chapterName === activeChapterName) return;
+            
+            mapIndia.flyTo(chapters[chapterName]);
+            
+            document.getElementById(chapterName).classList.add('active');
+            document.getElementById(activeChapterName).classList.remove('active');
+            
+            activeChapterName = chapterName;
+        }
+        
+        function isElementOnScreen(id) {
+            const element = document.getElementById(id);
+            const bounds = element.getBoundingClientRect();
+            return bounds.top < window.innerHeight && bounds.bottom > 2;
+        }
+        
+        window.onscroll = () => {
+            for (const chapterName in chapters) {
+            if (isElementOnScreen(chapterName)) {
+            setActiveChapter(chapterName);
+            break;
+            }
+            }
+        };
+
+    const zoomThreshold = 4;
+
+    var uArray = JSON.parse(localStorage.getItem('sArray'));
+    console.log(uArray); 
+
+    var geojson = {
+            type: 'FeatureCollection',
+            features: uArray.map(function(item) {
+                return {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'Point',
+                        coordinates: [item.CY, item.CX]
+                    },
+                    properties: {
+                        title: item.state,
+                        Coal: item.Coal,
+                        Total: item.Total,
+                        Hydro: item.Hydro, 
+                        Renewable: item.Renewable,
+                        Month: item.Month,
+                    }
+                };
+            })
+        };
+
+    console.log(geojson); 
+
+    const filterGroup = document.getElementById('filter-group'); 
+    const showCoalCheckbox = document.getElementById('show-coal');
+    const showHydroCheckbox = document.getElementById('show-hydro');
+    const showRenewableCheckbox = document.getElementById('show-renewable');
+
+    function updateLayerVisibility() {
+    mapIndia.setLayoutProperty('coal-layer', 'visibility', showCoalCheckbox.checked ? 'visible' : 'none');
+    mapIndia.setLayoutProperty('hydro-layer', 'visibility', showHydroCheckbox.checked ? 'visible' : 'none');
+    mapIndia.setLayoutProperty('renewable-layer', 'visibility', showRenewableCheckbox.checked ? 'visible' : 'none');
+    };
+
+    showCoalCheckbox.addEventListener('change', () => {
+
+        mapIndia.setLayoutProperty('coal-layer', 'visibility', showCoalCheckbox.checked ? 'visible' : 'none');
+        updateLayerVisibility();
+    });
+
+    showHydroCheckbox.addEventListener('change', () => {
+
+        mapIndia.setLayoutProperty('hydro-layer', 'visibility', showHydroCheckbox.checked ? 'visible' : 'none');
+        updateLayerVisibility();
+    });
+
+    showRenewableCheckbox.addEventListener('change', () => {
+
+        mapIndia.setLayoutProperty('renewable-layer', 'visibility', showRenewableCheckbox.checked ? 'visible' : 'none');
+        updateLayerVisibility();
+    });
+
+      
+        mapIndia.on('load', function () {
+
+        const popup = new mapboxgl.Popup({
+
+            closeButton: false,
+            closeOnClick: false
+            });
+
+            const layers = [
+                '30 MW',
+                '40000+ MW'
+                ];
+
+            const colours = [
+                '#FFFFF0',
+                '#000000'
+            ]; 
+
+            layers.forEach((layer, i) => {
+                const color = colours[i];
+                const item = document.createElement('div');
+                const key = document.createElement('span');
+                key.className = 'legend-key';
+                key.style.backgroundColor = color;
+
+                const value = document.createElement('span');
+                value.innerHTML = `${layer}`;
+                item.appendChild(key);
+                item.appendChild(value);
+                legend.appendChild(item);
+                });
+
+
+        mapIndia.on('click', 'coal-layer', function (e) {
+            var coordinates = e.features[0].geometry.coordinates.slice();
+            var description = "Coal Capacity " + e.features[0].properties.Coal + " MW";
+            popup.remove();
+            new mapboxgl.Popup()
+                .setLngLat(coordinates)
+                .setHTML(description)
+                .addTo(mapIndia);
+
+        });
+
+        mapIndia.on('click', 'hydro-layer', function (e) {
+            var coordinates = e.features[0].geometry.coordinates.slice();
+            var description = "Hydro Capacity " + e.features[0].properties.Hydro + " MW";
+            popup.remove();
+            new mapboxgl.Popup()
+                .setLngLat(coordinates)
+                .setHTML(description)
+                .addTo(mapIndia);
+
+        });
+
+        mapIndia.on('click', 'renewable-layer', function (e) {
+            var coordinates = e.features[0].geometry.coordinates.slice();
+            var description = "Renewable Capacity " + e.features[0].properties.Renewable + " MW";
+            popup.remove();
+            new mapboxgl.Popup()
+                .setLngLat(coordinates)
+                .setHTML(description)
+                .addTo(mapIndia);
+
+        });
+
+        mapIndia.addSource('IndiaStatesCC', {
+        type: 'geojson',
+        data: 'IndiaStatesCC.geojson'
+
+
+    });
+
+    
+        mapIndia.addLayer({
+            id: 'choropleth-layer',
+            type: 'fill',
+            source: 'IndiaStatesCC',
+            paint: {
+                'fill-color': [
+                    'interpolate',
+                    ['linear'],
+                    ['get', 'Total'],
+                    30, '#FFFFFF', 
+                    50000, '#000000'  
+                ],
+                'fill-opacity': 0.85
+            },
+        });
+        
+
+        mapIndia.on('mouseenter','choropleth-layer',function(e) {
+
+                popup
+                .setLngLat(e.lngLat)
+                .setHTML(e.features[0].properties.st_nm + 
+                " " + e.features[0].properties.Total + "MW")
+                .addTo(mapIndia);
+                console.log(e.features);
+        });
+
+        
+
+        mapIndia.on('mouseleave','choropleth-layer',function(e) {
+
+            popup.remove();
+
+            })
+
+        mapIndia.addSource('coal-data', {
+            type: 'geojson',
+            data: geojson,
+        });
+
+        mapIndia.addLayer({
+            id: 'coal-layer',
+            type: 'circle',
+            source: 'coal-data',
+            maxzoom: 10,
+            paint: {
+                'circle-radius': [
+                    'interpolate',
+                    ['linear'],
+                    ['get', 'Coal'],
+                    0.000001, 
+                    5, 
+                    25000, 
+                    15
+
+                ],
+                'circle-color': '#ff6011',
+            },
+        });
+
+    
+        mapIndia.addLayer({
+            id: 'hydro-layer',
+            type: 'circle',
+            source: 'coal-data',
+            maxzoom: 10,
+            paint: {
+                'circle-radius': [
+                    'interpolate',
+                    ['linear'],
+                    ['get','Hydro'],
+                    0, 
+                    5, 
+                    11000, 
+                    15
+                ],
+                'circle-color': '#fff610',
+            },
+        });
+
+        mapIndia.addLayer({
+            id: 'renewable-layer',
+            type: 'circle',
+            source: 'coal-data',
+            maxzoom: 10,
+            paint: {
+                'circle-radius': [
+                    'interpolate',
+                    ['linear'],
+                    ['get','Renewable'],
+                    0, 
+                    5, 
+                    12000, 
+                    15
+                ],
+                'circle-color': '#0f12ff',
+            },
+        });
+
+        updateLayerVisibility();
+    });
+
+        </script>
+
+        </body>
+        </html>
